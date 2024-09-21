@@ -40,7 +40,7 @@ export default function ActivityFeed() {
     };
 
     fetchActivities();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return <div className="text-center mt-8">Loading...</div>;

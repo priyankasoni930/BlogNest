@@ -54,7 +54,7 @@ export default function Search() {
     };
 
     searchPosts();
-  }, [query]);
+  }, [query, router]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -138,7 +138,9 @@ export default function Search() {
       {!loading && posts.length === 0 && query && (
         <Card className="mt-8">
           <CardContent>
-            <p className="text-center">No posts found for "{query}"</p>
+            <p className="text-center">
+              No posts found for &apos;{query}&apos;
+            </p>
           </CardContent>
         </Card>
       )}

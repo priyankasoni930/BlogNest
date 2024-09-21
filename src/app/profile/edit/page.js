@@ -53,7 +53,7 @@ export default function EditProfile() {
     };
 
     fetchProfile();
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

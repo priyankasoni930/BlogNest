@@ -56,7 +56,7 @@ export default function NewPost() {
     };
 
     fetchProfile();
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e, isDraft = false) => {
     e.preventDefault();
