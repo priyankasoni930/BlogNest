@@ -1,4 +1,5 @@
 // src/app/api/activity/route.js
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import jwt from "jsonwebtoken";
