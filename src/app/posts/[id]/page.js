@@ -52,7 +52,7 @@ export default function PostView({ params }) {
     };
 
     fetchProfile();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     const fetchPostAndComments = async () => {
@@ -91,7 +91,7 @@ export default function PostView({ params }) {
     };
 
     fetchPostAndComments();
-  }, [params.id]);
+  }, [params.id, router]);
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();

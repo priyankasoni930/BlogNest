@@ -50,7 +50,7 @@ export default function UserProfile({ params }) {
     };
 
     fetchUserProfile();
-  }, [params.id]);
+  }, [params.id, router]);
 
   const handleFollow = async () => {
     try {

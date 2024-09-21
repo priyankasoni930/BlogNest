@@ -1,5 +1,3 @@
-// src/app/api/posts/[id]/comments/route.js
-
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import clientPromise from "@/lib/mongodb";
@@ -19,32 +17,8 @@ export async function GET(request, { params }) {
 
     const comments = await db
       .collection("comments")
-      .aggregate([
-        { $match: { postId: new ObjectId(params.id) } },
-        {
-          $lookup: {
-            from: "users",
-            localField: "author",
-            foreignField: "_id",
-            as: "authorInfo",
-          },
-        },
-        { $unwind: "$authorInfo" },
-        {
-          $project: {
-            _id: 1,
-            content: 1,
-            createdAt: 1,
-            author: {
-              _id: "$authorInfo._id",
-              name: "$authorInfo.name",
-              email: "$authorInfo.email",
-              avatar: "$authorInfo.avatar",
-            },
-          },
-        },
-        { $sort: { createdAt: -1 } },
-      ])
+      .find({ postId: new ObjectId(params.id) })
+      .sort({ createdAt: -1 })
       .toArray();
 
     return NextResponse.json(comments);
@@ -68,33 +42,34 @@ export async function POST(request, { params }) {
     const userId = decoded.userId;
 
     const { content } = await request.json();
-    const postId = params.id;
 
     const client = await clientPromise;
     const db = client.db("blogapp");
 
-    const comment = await db.collection("comments").insertOne({
-      content,
+    const post = await db
+      .collection("posts")
+      .findOne({ _id: new ObjectId(params.id) });
+    if (!post) {
+      return NextResponse.json({ message: "Post not found" }, { status: 404 });
+    }
+
+    const newComment = {
+      postId: new ObjectId(params.id),
+      postAuthor: post.author,
       author: new ObjectId(userId),
-      post: new ObjectId(postId),
+      content,
       createdAt: new Date(),
-    });
+    };
 
-    // Add activity for the new comment
-    await db.collection("activities").insertOne({
-      type: "comment",
-      user: new ObjectId(userId),
-      comment: comment.insertedId,
-      post: new ObjectId(postId),
-      createdAt: new Date(),
-    });
+    const result = await db.collection("comments").insertOne(newComment);
 
-    return NextResponse.json({
-      message: "Comment added successfully",
-      commentId: comment.insertedId,
-    });
+    const insertedComment = await db
+      .collection("comments")
+      .findOne({ _id: result.insertedId });
+
+    return NextResponse.json(insertedComment, { status: 201 });
   } catch (error) {
-    console.error("Comment creation error:", error);
+    console.error("Create comment error:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

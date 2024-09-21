@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Added useCallback
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -38,11 +38,8 @@ export default function Posts() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
+    // Wrapped in useCallback
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
@@ -66,7 +63,11 @@ export default function Posts() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]); // Added router as a dependency
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]); // No changes needed here
 
   const handleDelete = async (postId) => {
     const token = localStorage.getItem("token");

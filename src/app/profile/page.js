@@ -49,7 +49,7 @@ export default function Profile() {
     };
 
     fetchProfile();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
