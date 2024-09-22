@@ -83,7 +83,28 @@ export default function UserProfile({ params }) {
   }, [params.id, fetchUserProfile, fetchUserPosts]);
 
   const handleFollowToggle = async () => {
-    // ... (keep the existing code for handleFollowToggle)
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/users/${params.id}/follow`, {
+        method: isFollowing ? "DELETE" : "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsFollowing(data.isFollowing);
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      setError("Failed to update follow status");
+    }
   };
 
   if (loading) {
