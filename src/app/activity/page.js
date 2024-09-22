@@ -70,21 +70,12 @@ export default function ActivityFeed() {
                       {activity.user.username}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {activity.type === "post" ? (
-                        <Link
-                          href={`/posts/${activity.post._id}`}
-                          className="hover:underline"
-                        >
-                          Posted: {activity.post.title}
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/posts/${activity.comment.post._id}`}
-                          className="hover:underline"
-                        >
-                          Commented on: {activity.comment.post.title}
-                        </Link>
-                      )}
+                      <Link
+                        href={`/posts/${activity.post._id}`}
+                        className="hover:underline"
+                      >
+                        Posted: {activity.post.title}
+                      </Link>
                     </p>
                   </div>
                   <div className="text-sm text-gray-500">
