@@ -132,7 +132,6 @@ export default function UserProfile({ params }) {
               <AvatarFallback>{user.username[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-lg">{user.email}</p>
               <p className="text-sm text-gray-500">
                 Joined on {new Date(user.createdAt).toLocaleDateString()}
               </p>
