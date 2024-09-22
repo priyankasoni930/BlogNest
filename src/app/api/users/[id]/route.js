@@ -1,35 +1,44 @@
 // src/app/api/users/[id]/route.js
-
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
+import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 
 export async function GET(request, { params }) {
   try {
+    const token = request.headers.get("authorization")?.split(" ")[1];
+    if (!token) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const currentUserId = decoded.userId;
+
     const client = await clientPromise;
     const db = client.db("blogapp");
 
     const user = await db
       .collection("users")
-      .findOne(
-        { _id: new ObjectId(params.id) },
-        { projection: { password: 0 } }
-      );
+      .findOne({ _id: new ObjectId(params.id) });
 
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    const posts = await db
-      .collection("posts")
-      .find({ author: new ObjectId(params.id) })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .toArray();
+    const currentUser = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(currentUserId) });
 
-    return NextResponse.json({ user, posts });
+    const isFollowing =
+      currentUser.following &&
+      currentUser.following.some((id) => id.toString() === params.id);
+
+    // Remove sensitive information
+    delete user.password;
+
+    return NextResponse.json({ user, isFollowing });
   } catch (error) {
-    console.error("Error fetching user profile:", error);
+    console.error("Fetch user profile error:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 }

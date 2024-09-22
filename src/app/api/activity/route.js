@@ -88,6 +88,7 @@ export async function GET(request) {
             user: {
               _id: 1,
               name: 1,
+              username: 1, // Include the username field
             },
             post: {
               _id: 1,

@@ -1,137 +1,155 @@
 // src/app/users/[id]/page.js
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function UserProfile({ params }) {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
+  const fetchUserProfile = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
 
-        const res = await fetch(`/api/users/${params.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch user profile");
-        }
-
-        const data = await res.json();
+    try {
+      const res = await fetch(`/api/users/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
         setUser(data.user);
-        setPosts(data.posts);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
+        setIsFollowing(data.isFollowing);
+      } else {
+        setError(data.message);
       }
-    };
-
-    fetchUserProfile();
+    } catch (error) {
+      setError("Failed to fetch user profile");
+      console.error("Profile fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [params.id, router]);
 
-  const handleFollow = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
-      const res = await fetch(`/api/users/${params.id}/follow`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to follow/unfollow user");
-      }
-
-      setUser((prevUser) => ({
-        ...prevUser,
-        isFollowed: !prevUser.isFollowed,
-      }));
-    } catch (error) {
-      setError(error.message);
+  const fetchUserPosts = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
     }
+
+    try {
+      const res = await fetch(`/api/users/${params.id}/posts`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log("Fetched posts:", data); // Add this line for debugging
+        setPosts(data);
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      setError("Failed to fetch user posts");
+      console.error("Posts fetch error:", error);
+    }
+  }, [params.id, router]);
+
+  useEffect(() => {
+    fetchUserProfile();
+    fetchUserPosts();
+  }, [params.id, fetchUserProfile, fetchUserPosts]);
+
+  const handleFollowToggle = async () => {
+    // ... (keep the existing code for handleFollowToggle)
   };
 
   if (loading) {
-    return <div className="text-center mt-8">Loading...</div>;
+    return <div>Loading...</div>;
   }
 
   if (error) {
-    return <div className="text-center mt-8 text-red-500">Error: {error}</div>;
+    return <div>Error: {error}</div>;
+  }
+
+  if (!user) {
+    return <div>User not found</div>;
   }
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 p-4">
-      <Card>
+    <div className="container mx-auto px-4 py-8">
+      <Card className="mb-8">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20">
-                <AvatarFallback>{user.username.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle>{user.username}</CardTitle>
-              </div>
-            </div>
-            <Button onClick={handleFollow}>
-              {user.isFollowed ? "Unfollow" : "Follow"}
-            </Button>
-          </div>
+          <CardTitle className="text-2xl font-bold">{user.username}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600 mb-4">{user.bio}</p>
-          <h3 className="text-xl font-semibold mb-2">Recent Posts</h3>
-          <ul className="divide-y divide-gray-200">
-            {posts.map((post) => (
-              <li key={post._id} className="py-4">
-                <Link
-                  href={`/posts/${post._id}`}
-                  className="block hover:bg-gray-50"
-                >
-                  <div className="px-4 py-4 sm:px-6">
-                    <p className="text-sm font-medium text-indigo-600 truncate">
-                      {post.title}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">{post.excerpt}</p>
-                    <div className="mt-2 flex items-center text-sm text-gray-500">
-                      <p>
-                        Posted on{" "}
-                        {new Date(post.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="flex items-center space-x-4">
+            <Avatar className="h-20 w-20">
+              <AvatarImage src={user.avatar} alt={user.username} />
+              <AvatarFallback>{user.username[0]}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-lg">{user.email}</p>
+              <p className="text-sm text-gray-500">
+                Joined on {new Date(user.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          <Button className="mt-4" onClick={handleFollowToggle}>
+            {isFollowing ? "Unfollow" : "Follow"}
+          </Button>
         </CardContent>
       </Card>
+
+      <h2 className="text-2xl font-bold mb-4">User Posts</h2>
+      {posts.length === 0 ? (
+        <p>This user hasn&apos;t posted anything yet.</p>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <Card key={post._id}>
+              <CardHeader>
+                <CardTitle>{post.title}</CardTitle>
+                <CardDescription>
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {post.content}
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button asChild>
+                  <Link href={`/posts/${post._id}`}>Read More</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

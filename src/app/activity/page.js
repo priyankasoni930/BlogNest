@@ -61,9 +61,13 @@ export default function ActivityFeed() {
             {activities.map((activity) => (
               <li key={activity._id} className="py-4">
                 <div className="flex items-center space-x-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>{activity.user.username[0]}</AvatarFallback>
+                  </Avatar>
+
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {activity.username}
+                      {activity.user.username}
                     </p>
                     <p className="text-sm text-gray-500">
                       {activity.type === "post" ? (
