@@ -66,20 +66,7 @@ export async function GET(request) {
             preserveNullAndEmptyArrays: true,
           },
         },
-        {
-          $lookup: {
-            from: "comments",
-            localField: "comment",
-            foreignField: "_id",
-            as: "comment",
-          },
-        },
-        {
-          $unwind: {
-            path: "$comment",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
+
         {
           $project: {
             _id: 1,
