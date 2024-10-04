@@ -10,7 +10,6 @@ pnpm dev
 bun dev
 ```
 
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 ## Deploy on Vercel
 
