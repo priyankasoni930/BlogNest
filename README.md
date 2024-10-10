@@ -7,7 +7,7 @@ git clone https://github.com/priyankasoni930/BlogNest.git
 cd BlogNest
 ```
 ```bash
-
+npm install
 ```
 ```bash
 
