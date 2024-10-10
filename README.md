@@ -10,7 +10,7 @@ cd BlogNest
 npm install
 ```
 ```bash
-
+npm run dev
 ```
 
 
